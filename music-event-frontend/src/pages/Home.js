@@ -1,53 +1,9 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaTicketAlt, FaCalendarCheck, FaHandshake, FaCalendarAlt, FaStar, FaArrowRight } from 'react-icons/fa';
 import EventCard from '../components/EventCard';
+import { eventAPI } from '../services/api';
 import './Pages.css';
-
-// Sample featured events
-const featuredEvents = [
-  {
-    id: 1,
-    name: 'Rock Night Extravaganza',
-    description: 'Experience the ultimate rock music festival with top artists from around the world.',
-    location: 'Chennai, Tamil Nadu',
-    date: '2025-08-25',
-    time: '7:00 PM',
-    price: 1500,
-    category: 'Rock',
-    emoji: '🎸',
-    gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    featured: true,
-    availableTickets: 45
-  },
-  {
-    id: 2,
-    name: 'Jazz Evening Soiree',
-    description: 'A sophisticated evening of smooth jazz and elegant melodies.',
-    location: 'Bangalore, Karnataka',
-    date: '2025-09-02',
-    time: '6:30 PM',
-    price: 1200,
-    category: 'Jazz',
-    emoji: '🎷',
-    gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-    featured: true,
-    availableTickets: 32
-  },
-  {
-    id: 3,
-    name: 'EDM Festival 2025',
-    description: 'Dance the night away with electrifying beats and stunning visuals.',
-    location: 'Hyderabad, Telangana',
-    date: '2025-09-15',
-    time: '8:00 PM',
-    price: 2000,
-    category: 'EDM',
-    emoji: '🎧',
-    gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-    featured: true,
-    availableTickets: 78
-  }
-];
 
 const testimonials = [
   {
@@ -71,6 +27,42 @@ const testimonials = [
 ];
 
 function Home() {
+  const [recentEvents, setRecentEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchRecentEvents();
+  }, []);
+
+  const fetchRecentEvents = async () => {
+    try {
+      setLoading(true);
+      const response = await eventAPI.getUpcomingEvents();
+      const now = new Date();
+      
+      // Filter upcoming events and sort by date (nearest upcoming first)
+      const upcomingEvents = response.data
+        .filter(event => {
+          const eventDate = new Date(event.date);
+          return eventDate >= now && event.status !== 'completed';
+        })
+        .sort((a, b) => {
+          // Sort by date (nearest upcoming events first)
+          const dateA = new Date(a.date);
+          const dateB = new Date(b.date);
+          return dateA - dateB;
+        })
+        .slice(0, 3); // Get the 3 most recent events
+      
+      setRecentEvents(upcomingEvents);
+    } catch (error) {
+      console.error('Error fetching recent events:', error);
+      setRecentEvents([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="home">
       {/* Hero Section */}
@@ -151,20 +143,30 @@ function Home() {
         </div>
       </section>
 
-      {/* Featured Events */}
+      {/* Recent Events */}
       <section className="featured-events">
         <div className="container">
           <div className="section-header">
-            <h2 className="section-title">Featured Events</h2>
+            <h2 className="section-title">Recent Events</h2>
             <Link to="/events" className="view-all-link">
               View All Events <FaArrowRight />
             </Link>
           </div>
-          <div className="events-grid">
-            {featuredEvents.map(event => (
-              <EventCard key={event.id} event={event} />
-            ))}
-          </div>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <p>Loading events...</p>
+            </div>
+          ) : recentEvents.length > 0 ? (
+            <div className="events-grid">
+              {recentEvents.map(event => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '2rem' }}>
+              <p>No events available at the moment.</p>
+            </div>
+          )}
         </div>
       </section>
 
