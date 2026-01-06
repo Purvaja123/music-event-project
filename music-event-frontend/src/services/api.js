@@ -1,8 +1,5 @@
 import axios from 'axios';
 
-// Base URL from environment variable
-//export const API_URL = process.env.REACT_APP_API_URL || 'https://music-event-project-1.onrender.com/api';
-
 // Create axios instance
 const api = axios.create({
   baseURL: 'https://music-event-project-1.onrender.com/api',
@@ -11,30 +8,43 @@ const api = axios.create({
   },
 });
 
-// Request interceptor: attach token if present
+// =======================
+// Request Interceptor
+// =======================
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    if (token) {
+
+    // ❌ Do NOT attach token for login & register
+    if (
+      token &&
+      !config.url.includes('/auth/login') &&
+      !config.url.includes('/auth/register')
+    ) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response interceptor: handle network errors & 401
+// =======================
+// Response Interceptor
+// =======================
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (!error.response) {
       error.message = 'Cannot connect to backend. Check server URL and status.';
     }
+
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
+
     return Promise.reject(error);
   }
 );
@@ -87,10 +97,12 @@ export const contractAPI = {
   getArtistContracts: (artistId) => api.get(`/contracts/artist/${artistId}`),
   getOrganizerContracts: (organizerId) => api.get(`/contracts/organizer/${organizerId}`),
   getPendingContracts: (artistId) => api.get(`/contracts/artist/${artistId}/pending`),
-  updateContractStatus: (id, status) => api.put(`/contracts/${id}/status`, { status }),
+  updateContractStatus: (id, status) =>
+    api.put(`/contracts/${id}/status`, { status }),
   getContractById: (id) => api.get(`/contracts/${id}`),
-  linkEventToContract: (contractId, eventId) => api.put(`/contracts/${contractId}/link-event`, { eventId }),
+  linkEventToContract: (contractId, eventId) =>
+    api.put(`/contracts/${contractId}/link-event`, { eventId }),
 };
 
-// Default export for general use
+// Default export
 export default api;
