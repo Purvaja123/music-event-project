@@ -21,16 +21,20 @@ import java.nio.file.StandardOpenOption;
 public class AuthController {
     @Autowired
     private AuthService authService;
-    
+
+    // Path for NDJSON debugging (relative so it works both locally and on Render)
+    private static final Path DEBUG_LOG_PATH = Path.of(".cursor", "debug.log");
+
     @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         // #region agent log
         try {
+            Files.createDirectories(DEBUG_LOG_PATH.getParent());
             String logEntry = "{\"sessionId\":\"debug-session\",\"runId\":\"initial\",\"hypothesisId\":\"H1\",\"location\":\"AuthController.java:register\",\"message\":\"enter register\",\"data\":{\"email\":\""
                     + (request != null ? request.getEmail() : "null")
                     + "\"},\"timestamp\":" + System.currentTimeMillis() + "}";
             Files.writeString(
-                    Path.of(\"c:\\\\Users\\\\NEW PC\\\\Desktop\\\\music-event-project\\\\.cursor\\\\debug.log\"),
+                    DEBUG_LOG_PATH,
                     logEntry + System.lineSeparator(),
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND
             );
@@ -40,11 +44,12 @@ public class AuthController {
             AuthResponse response = authService.register(request);
             // #region agent log
             try {
+                Files.createDirectories(DEBUG_LOG_PATH.getParent());
                 String logEntry = "{\"sessionId\":\"debug-session\",\"runId\":\"initial\",\"hypothesisId\":\"H2\",\"location\":\"AuthController.java:register\",\"message\":\"register success\",\"data\":{\"userId\":"
-                        + (response != null ? response.getUserId() : -1)
+                        + (response != null ? response.getId() : -1)
                         + "},\"timestamp\":" + System.currentTimeMillis() + "}";
                 Files.writeString(
-                        Path.of(\"c:\\\\Users\\\\NEW PC\\\\Desktop\\\\music-event-project\\\\.cursor\\\\debug.log\"),
+                        DEBUG_LOG_PATH,
                         logEntry + System.lineSeparator(),
                         StandardOpenOption.CREATE, StandardOpenOption.APPEND
                 );
@@ -54,11 +59,12 @@ public class AuthController {
         } catch (RuntimeException e) {
             // #region agent log
             try {
+                Files.createDirectories(DEBUG_LOG_PATH.getParent());
                 String logEntry = "{\"sessionId\":\"debug-session\",\"runId\":\"initial\",\"hypothesisId\":\"H3\",\"location\":\"AuthController.java:register\",\"message\":\"register runtime exception\",\"data\":{\"error\":\""
                         + e.getMessage().replace("\"", "'")
                         + "\"},\"timestamp\":" + System.currentTimeMillis() + "}";
                 Files.writeString(
-                        Path.of(\"c:\\\\Users\\\\NEW PC\\\\Desktop\\\\music-event-project\\\\.cursor\\\\debug.log\"),
+                        DEBUG_LOG_PATH,
                         logEntry + System.lineSeparator(),
                         StandardOpenOption.CREATE, StandardOpenOption.APPEND
                 );
@@ -70,11 +76,12 @@ public class AuthController {
         } catch (Exception e) {
             // #region agent log
             try {
+                Files.createDirectories(DEBUG_LOG_PATH.getParent());
                 String logEntry = "{\"sessionId\":\"debug-session\",\"runId\":\"initial\",\"hypothesisId\":\"H4\",\"location\":\"AuthController.java:register\",\"message\":\"register general exception\",\"data\":{\"error\":\""
                         + e.getMessage().replace("\"", "'")
                         + "\"},\"timestamp\":" + System.currentTimeMillis() + "}";
                 Files.writeString(
-                        Path.of(\"c:\\\\Users\\\\NEW PC\\\\Desktop\\\\music-event-project\\\\.cursor\\\\debug.log\"),
+                        DEBUG_LOG_PATH,
                         logEntry + System.lineSeparator(),
                         StandardOpenOption.CREATE, StandardOpenOption.APPEND
                 );
