@@ -15,9 +15,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
+// @RestController
+// @RequestMapping("/auth")
+// @CrossOrigin(origins = "http://localhost:3000")
+// public class AuthController {
 @RestController
-@RequestMapping("/auth")
-@CrossOrigin(origins = "http://localhost:3000")
+@RequestMapping("/api/auth")
+@CrossOrigin
 public class AuthController {
     @Autowired
     private AuthService authService;
