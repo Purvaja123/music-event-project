@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaMusic } from 'react-icons/fa';
 import { authAPI } from '../services/api';
+import { API_URL } from '../services/api';
 import './Pages.css';
 
 function Login() {
@@ -24,7 +25,7 @@ function Login() {
     }
 
     try {
-      const response = await authAPI.login(formData);
+      const response = await axios.post(`${API_URL}/auth/login`, formData);
 
       const userRole = response.data.role?.toLowerCase();
       localStorage.setItem('token', response.data.token);

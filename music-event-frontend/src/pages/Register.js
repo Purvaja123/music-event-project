@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaUser, FaEnvelope, FaLock, FaMusic, FaMapMarkerAlt, FaPhone, FaGlobe, FaMicrophone, FaBuilding } from 'react-icons/fa';
 import { authAPI } from '../services/api';
+import { API_URL } from '../services/api';
 import './Pages.css';
 
 function Register() {
@@ -110,7 +111,7 @@ function Register() {
         profile: profileData
       };
 
-      const response = await authAPI.register(registerData);
+const response = await axios.post(`${API_URL}/auth/register`, registerData);
 
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('user', JSON.stringify(response.data));
