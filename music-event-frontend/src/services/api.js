@@ -1,30 +1,7 @@
 import axios from 'axios';
 
-// Backend API URL - Update this if your backend runs on a different port
-const API_URL = process.env.REACT_APP_API_URL || 'https://music-event-project-1.onrender.com';
+const API_URL = process.env.REACT_APP_API_URL || 'https://music-event-project-1.onrender.com/api';
 
-// #region agent log
-// Log API_URL to console for immediate visibility
-console.log('[DEBUG] API_URL configured:', API_URL);
-// Send NDJSON-style log to local ingest server so we can see the actual base URL at runtime
-try {
-  fetch('http://127.0.0.1:7242/ingest/c9c23353-df51-40b1-9fa9-f98f3864eca6', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      sessionId: 'debug-session',
-      runId: 'frontend-initial',
-      hypothesisId: 'H1', // Hypothesis: wrong base URL or extra /api prefix causes 404
-      location: 'src/services/api.js:API_URL',
-      message: 'Configured API base URL',
-      data: { API_URL },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-} catch (e) {}
-// #endregion
-
-// Create axios instance
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -32,63 +9,26 @@ const api = axios.create({
   },
 });
 
-// Add token to requests if available
+// Request interceptor: attach token if present
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    // #region agent log
-    // Log the actual full URL being called for debugging 404 issues
-    const fullUrl = (config.baseURL || '') + (config.url || '');
-    console.log('[DEBUG] Axios request:', {
-      method: config.method?.toUpperCase(),
-      url: config.url,
-      baseURL: config.baseURL,
-      fullURL: fullUrl,
-    });
-    // #endregion
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Handle response errors
+// Response interceptor: handle network errors & 401
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // #region agent log
-    // Log error details for debugging 404 and other issues
-    const fullUrl = (error.config?.baseURL || '') + (error.config?.url || '');
-    console.error('[DEBUG] Axios error:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      url: error.config?.url,
-      baseURL: error.config?.baseURL,
-      fullURL: fullUrl,
-      message: error.message,
-      code: error.code,
-    });
-    // #endregion
-    // Handle network errors (no response from server)
     if (!error.response) {
-      if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
-        console.error('Network Error: Cannot connect to backend server');
-        console.error('Please ensure the backend is running on https://music-event-project-1.onrender.com');
-        error.networkError = true;
-        error.message = 'Cannot connect to server. Please ensure the backend is running on https://music-event-project-1.onrender.com.';
-      } else if (error.code === 'ERR_NETWORK') {
-        console.error('Network Error: Failed to connect to backend');
-        error.networkError = true;
-        error.message = 'Network error. Please check if the backend server is running.';
-      }
+      error.message = 'Cannot connect to backend. Check server URL and status.';
     }
-    
     if (error.response?.status === 401) {
-      // Token expired or invalid
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
@@ -97,50 +37,26 @@ api.interceptors.response.use(
   }
 );
 
-// Test backend connection
-export const testConnection = async () => {
-  try {
-    // Try to access the register endpoint with empty data
-    // This will fail validation but confirms server is running
-    const response = await axios.post(`${API_URL}/auth/register`, {}, {
-      timeout: 5000,
-      validateStatus: () => true, // Accept any status code (400, 500, etc. means server is up)
-    });
-    
-    // If we get any response (even error), server is running
-    if (response.status >= 400 && response.status < 600) {
-      return { connected: true, status: response.status };
-    }
-    return { connected: true, status: response.status };
-  } catch (error) {
-    // Network errors mean server is not accessible
-    if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
-      console.error('Backend connection test failed:', error);
-      return { 
-        connected: false, 
-        error: error.message,
-        details: 'Backend server is not accessible. Please ensure it is running on https://music-event-project-1.onrender.com .'
-      };
-    }
-    // Other errors might mean server is running but endpoint has issues
-    return { connected: true, status: 'unknown' };
-  }
-};
-
+// =======================
 // Auth APIs
+// =======================
 export const authAPI = {
   register: (userData) => api.post('/auth/register', userData),
   login: (credentials) => api.post('/auth/login', credentials),
 };
 
+// =======================
 // User APIs
+// =======================
 export const userAPI = {
   getArtists: () => api.get('/users/artists'),
   getOrganizers: () => api.get('/users/organizers'),
   getUserById: (id) => api.get(`/users/${id}`),
 };
 
+// =======================
 // Event APIs
+// =======================
 export const eventAPI = {
   getAllEvents: () => api.get('/events'),
   getUpcomingEvents: () => api.get('/events/upcoming'),
@@ -151,7 +67,9 @@ export const eventAPI = {
   deleteEvent: (id) => api.delete(`/events/${id}`),
 };
 
+// =======================
 // Booking APIs
+// =======================
 export const bookingAPI = {
   createBooking: (bookingData) => api.post('/bookings', bookingData),
   getUserBookings: (userId) => api.get(`/bookings/user/${userId}`),
@@ -159,7 +77,9 @@ export const bookingAPI = {
   getBookingById: (id) => api.get(`/bookings/${id}`),
 };
 
+// =======================
 // Contract APIs
+// =======================
 export const contractAPI = {
   createContract: (contractData) => api.post('/contracts', contractData),
   getArtistContracts: (artistId) => api.get(`/contracts/artist/${artistId}`),
@@ -171,10 +91,3 @@ export const contractAPI = {
 };
 
 export default api;
-
-
-
-
-
-
-

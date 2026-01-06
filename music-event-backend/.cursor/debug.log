@@ -1,0 +1,2 @@
+{"sessionId":"debug-session","runId":"initial","hypothesisId":"H1","location":"AuthController.java:register","message":"enter register","data":{"email":"test999@example.com"},"timestamp":1767728238843}
+{"sessionId":"debug-session","runId":"initial","hypothesisId":"H2","location":"AuthController.java:register","message":"register success","data":{"userId":4},"timestamp":1767728241962}
