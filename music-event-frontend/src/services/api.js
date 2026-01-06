@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Create axios instance
+// ✅ Backend base URL (DO NOT add /auth here)
 const api = axios.create({
   baseURL: 'https://music-event-project-1.onrender.com/api',
   headers: {
@@ -9,19 +9,20 @@ const api = axios.create({
 });
 
 // =======================
-// Request Interceptor
+// ✅ Request Interceptor
+// IMPORTANT: Do NOT send token for login/register
 // =======================
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const isAuthRequest =
+      config.url.includes('/auth/login') ||
+      config.url.includes('/auth/register');
 
-    // ❌ Do NOT attach token for login & register
-    if (
-      token &&
-      !config.url.includes('/auth/login') &&
-      !config.url.includes('/auth/register')
-    ) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (!isAuthRequest) {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
 
     return config;
@@ -36,7 +37,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (!error.response) {
-      error.message = 'Cannot connect to backend. Check server URL and status.';
+      error.message = 'Cannot connect to backend. Check server status.';
     }
 
     if (error.response?.status === 401) {
@@ -50,7 +51,7 @@ api.interceptors.response.use(
 );
 
 // =======================
-// Auth APIs
+// Auth APIs (PUBLIC)
 // =======================
 export const authAPI = {
   register: (userData) => api.post('/auth/register', userData),
@@ -58,7 +59,7 @@ export const authAPI = {
 };
 
 // =======================
-// User APIs
+// User APIs (PROTECTED)
 // =======================
 export const userAPI = {
   getArtists: () => api.get('/users/artists'),
@@ -73,7 +74,8 @@ export const eventAPI = {
   getAllEvents: () => api.get('/events'),
   getUpcomingEvents: () => api.get('/events/upcoming'),
   getEventById: (id) => api.get(`/events/${id}`),
-  getOrganizerEvents: (organizerId) => api.get(`/events/organizer/${organizerId}`),
+  getOrganizerEvents: (organizerId) =>
+    api.get(`/events/organizer/${organizerId}`),
   createEvent: (eventData) => api.post('/events', eventData),
   updateEvent: (id, eventData) => api.put(`/events/${id}`, eventData),
   deleteEvent: (id) => api.delete(`/events/${id}`),
@@ -94,9 +96,12 @@ export const bookingAPI = {
 // =======================
 export const contractAPI = {
   createContract: (contractData) => api.post('/contracts', contractData),
-  getArtistContracts: (artistId) => api.get(`/contracts/artist/${artistId}`),
-  getOrganizerContracts: (organizerId) => api.get(`/contracts/organizer/${organizerId}`),
-  getPendingContracts: (artistId) => api.get(`/contracts/artist/${artistId}/pending`),
+  getArtistContracts: (artistId) =>
+    api.get(`/contracts/artist/${artistId}`),
+  getOrganizerContracts: (organizerId) =>
+    api.get(`/contracts/organizer/${organizerId}`),
+  getPendingContracts: (artistId) =>
+    api.get(`/contracts/artist/${artistId}/pending`),
   updateContractStatus: (id, status) =>
     api.put(`/contracts/${id}/status`, { status }),
   getContractById: (id) => api.get(`/contracts/${id}`),
@@ -104,5 +109,4 @@ export const contractAPI = {
     api.put(`/contracts/${contractId}/link-event`, { eventId }),
 };
 
-// Default export
 export default api;
