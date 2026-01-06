@@ -1,10 +1,28 @@
 import axios from 'axios';
 
 // Backend API URL - Update this if your backend runs on a different port
-const API_URL = process.env.REACT_APP_API_URL || 'https://music-event-project-1.onrender.com/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://music-event-project-1.onrender.com';
 
-// Log API URL for debugging
-console.log('API URL configured:', API_URL);
+// #region agent log
+// Log API_URL to console for immediate visibility
+console.log('[DEBUG] API_URL configured:', API_URL);
+// Send NDJSON-style log to local ingest server so we can see the actual base URL at runtime
+try {
+  fetch('http://127.0.0.1:7242/ingest/c9c23353-df51-40b1-9fa9-f98f3864eca6', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      sessionId: 'debug-session',
+      runId: 'frontend-initial',
+      hypothesisId: 'H1', // Hypothesis: wrong base URL or extra /api prefix causes 404
+      location: 'src/services/api.js:API_URL',
+      message: 'Configured API base URL',
+      data: { API_URL },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {});
+} catch (e) {}
+// #endregion
 
 // Create axios instance
 const api = axios.create({
@@ -21,6 +39,16 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // #region agent log
+    // Log the actual full URL being called for debugging 404 issues
+    const fullUrl = (config.baseURL || '') + (config.url || '');
+    console.log('[DEBUG] Axios request:', {
+      method: config.method?.toUpperCase(),
+      url: config.url,
+      baseURL: config.baseURL,
+      fullURL: fullUrl,
+    });
+    // #endregion
     return config;
   },
   (error) => {
@@ -32,6 +60,19 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // #region agent log
+    // Log error details for debugging 404 and other issues
+    const fullUrl = (error.config?.baseURL || '') + (error.config?.url || '');
+    console.error('[DEBUG] Axios error:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      baseURL: error.config?.baseURL,
+      fullURL: fullUrl,
+      message: error.message,
+      code: error.code,
+    });
+    // #endregion
     // Handle network errors (no response from server)
     if (!error.response) {
       if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {

@@ -167,6 +167,28 @@ if (formData.role === 'musician') {
         registerData.profile = profileData;
       }
 
+      // #region agent log
+      // Log outgoing register request payload shape (no password) to debug 404 and payload issues
+      try {
+        fetch('http://127.0.0.1:7242/ingest/c9c23353-df51-40b1-9fa9-f98f3864eca6', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: 'debug-session',
+            runId: 'frontend-initial',
+            hypothesisId: 'H2', // Hypothesis: wrong path or payload causing 404/validation error
+            location: 'src/pages/Register.js:handleSubmit:beforeRegister',
+            message: 'About to call authAPI.register',
+            data: {
+              keys: Object.keys(registerData || {}),
+              role: registerData?.role,
+            },
+            timestamp: Date.now(),
+          }),
+        }).catch(() => {});
+      } catch (e) {}
+      // #endregion
+
       // Register user
       const response = await authAPI.register(registerData);
 
@@ -194,6 +216,29 @@ if (formData.role === 'musician') {
       }
     } catch (error) {
       console.error('Registration error:', error);
+      // #region agent log
+      // Capture error response status/body for hypotheses about 404 vs other errors
+      try {
+        fetch('http://127.0.0.1:7242/ingest/c9c23353-df51-40b1-9fa9-f98f3864eca6', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: 'debug-session',
+            runId: 'frontend-initial',
+            hypothesisId: 'H3', // Hypothesis: backend path mismatch /auth vs /api/auth or other status
+            location: 'src/pages/Register.js:handleSubmit:catch',
+            message: 'Registration failed in frontend',
+            data: {
+              status: error?.response?.status,
+              url: error?.config?.url,
+              baseURL: error?.config?.baseURL,
+              message: error?.message,
+            },
+            timestamp: Date.now(),
+          }),
+        }).catch(() => {});
+      } catch (e) {}
+      // #endregion
       console.error('Error response:', error.response);
       console.error('Error data:', error.response?.data);
       console.error('Error code:', error.code);
