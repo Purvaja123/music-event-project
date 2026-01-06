@@ -1,11 +1,11 @@
 import axios from 'axios';
 
 // Base URL from environment variable
-export const API_URL = process.env.REACT_APP_API_URL || 'https://music-event-project-1.onrender.com/api';
+//export const API_URL = process.env.REACT_APP_API_URL || 'https://music-event-project-1.onrender.com/api';
 
 // Create axios instance
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: 'https://music-event-project-1.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },

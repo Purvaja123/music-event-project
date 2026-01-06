@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaEnvelope, FaLock, FaMusic } from 'react-icons/fa';
 import { authAPI } from '../services/api';
-import { API_URL } from '../services/api';
+
+//import { API_URL } from '../services/api';
 import axios from "axios";
 
 import './Pages.css';
@@ -27,10 +28,14 @@ function Login() {
     }
 
     try {
-      const response = await authAPI.login(formData);
-const data = response.data; // <-- this gets the token, user info
+const response = await authAPI.login(formData);
+const data = response.data;
+
 localStorage.setItem('token', data.token);
 localStorage.setItem('user', JSON.stringify(data));
+
+
+      
 
       const userRole = response.data.role?.toLowerCase();
       localStorage.setItem('token', response.data.token);

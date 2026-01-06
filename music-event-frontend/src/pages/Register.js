@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaUser, FaEnvelope, FaLock, FaMusic, FaMapMarkerAlt, FaPhone, FaGlobe, FaMicrophone, FaBuilding } from 'react-icons/fa';
 import { authAPI } from '../services/api';
-import { API_URL } from '../services/api';
+//import { API_URL } from '../services/api';
 import axios from "axios";
 
 import './Pages.css';
@@ -112,11 +112,15 @@ function Register() {
         role: formData.role.toUpperCase(),
         profile: profileData
       };
-
 const response = await authAPI.register(registerData);
-const data = response.data; // <-- token and user info
+const data = response.data;
+
 localStorage.setItem('token', data.token);
 localStorage.setItem('user', JSON.stringify(data));
+
+
+
+      
 
       //localStorage.setItem('token', response.data.token);
       //localStorage.setItem('user', JSON.stringify(response.data));
