@@ -27,7 +27,10 @@ function Login() {
     }
 
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, formData);
+      const response = await authAPI.login(formData);
+const data = response.data; // <-- this gets the token, user info
+localStorage.setItem('token', data.token);
+localStorage.setItem('user', JSON.stringify(data));
 
       const userRole = response.data.role?.toLowerCase();
       localStorage.setItem('token', response.data.token);

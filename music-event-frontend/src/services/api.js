@@ -1,7 +1,9 @@
 import axios from 'axios';
 
+// Base URL from environment variable
 export const API_URL = process.env.REACT_APP_API_URL || 'https://music-event-project-1.onrender.com/api';
 
+// Create axios instance
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -90,4 +92,5 @@ export const contractAPI = {
   linkEventToContract: (contractId, eventId) => api.put(`/contracts/${contractId}/link-event`, { eventId }),
 };
 
+// Default export for general use
 export default api;

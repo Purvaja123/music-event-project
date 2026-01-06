@@ -113,10 +113,13 @@ function Register() {
         profile: profileData
       };
 
-const response = await axios.post(`${API_URL}/auth/register`, registerData);
+const response = await authAPI.register(registerData);
+const data = response.data; // <-- token and user info
+localStorage.setItem('token', data.token);
+localStorage.setItem('user', JSON.stringify(data));
 
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data));
+      //localStorage.setItem('token', response.data.token);
+      //localStorage.setItem('user', JSON.stringify(response.data));
 
       window.dispatchEvent(new Event('userLogin'));
 
