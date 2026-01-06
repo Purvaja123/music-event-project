@@ -96,32 +96,63 @@ function Register() {
     }
 
     try {
+       let profileData = null;
+if (formData.role === 'musician') {
+  profileData = {
+    genre: formData.genre,
+    location: formData.location,
+    phone: formData.phone,
+    bio: formData.bio,
+    price: parseFloat(formData.price),
+    rating: 4.5,
+    upcomingShows: 0
+  };
+} else if (formData.role === 'organizer') {
+  profileData = {
+    type: formData.type,
+    location: formData.location,
+    phone: formData.phone,
+    contact: formData.contact || formData.email,
+    website: formData.website || '',
+    bio: formData.bio,
+    specialties: formData.specialties ? formData.specialties.split(',').map(s => s.trim()) : [],
+    eventsOrganized: 0,
+    totalAttendees: '0',
+    rating: 4.5
+  };
+}
+
+
+
+
+
+
       // Prepare profile data as JSON string
-      let profileData = null;
-      if (formData.role === 'musician') {
-        profileData = JSON.stringify({
-          genre: formData.genre,
-          location: formData.location,
-          phone: formData.phone,
-          bio: formData.bio,
-          price: parseFloat(formData.price),
-          rating: 4.5,
-          upcomingShows: 0
-        });
-      } else if (formData.role === 'organizer') {
-        profileData = JSON.stringify({
-          type: formData.type,
-          location: formData.location,
-          phone: formData.phone,
-          contact: formData.contact || formData.email,
-          website: formData.website || '',
-          bio: formData.bio,
-          specialties: formData.specialties ? formData.specialties.split(',').map(s => s.trim()) : [],
-          eventsOrganized: 0,
-          totalAttendees: '0',
-          rating: 4.5
-        });
-      }
+      //let profileData = null;
+      // if (formData.role === 'musician') {
+      //   profileData = JSON.stringify({
+      //     genre: formData.genre,
+      //     location: formData.location,
+      //     phone: formData.phone,
+      //     bio: formData.bio,
+      //     price: parseFloat(formData.price),
+      //     rating: 4.5,
+      //     upcomingShows: 0
+      //   });
+      // } else if (formData.role === 'organizer') {
+      //   profileData = JSON.stringify({
+      //     type: formData.type,
+      //     location: formData.location,
+      //     phone: formData.phone,
+      //     contact: formData.contact || formData.email,
+      //     website: formData.website || '',
+      //     bio: formData.bio,
+      //     specialties: formData.specialties ? formData.specialties.split(',').map(s => s.trim()) : [],
+      //     eventsOrganized: 0,
+      //     totalAttendees: '0',
+      //     rating: 4.5
+      //   });
+      // }
 
       // Prepare registration data
       const registerData = {

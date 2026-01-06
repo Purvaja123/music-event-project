@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Backend API URL - Update this if your backend runs on a different port
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const API_URL = process.env.REACT_APP_API_URL || 'https://music-event-project-1.onrender.com/api';
 
 // Log API URL for debugging
 console.log('API URL configured:', API_URL);
@@ -36,9 +36,9 @@ api.interceptors.response.use(
     if (!error.response) {
       if (error.code === 'ECONNREFUSED' || error.message.includes('Network Error')) {
         console.error('Network Error: Cannot connect to backend server');
-        console.error('Please ensure the backend is running on http://localhost:8080');
+        console.error('Please ensure the backend is running on https://music-event-project-1.onrender.com');
         error.networkError = true;
-        error.message = 'Cannot connect to server. Please ensure the backend is running on port 8080.';
+        error.message = 'Cannot connect to server. Please ensure the backend is running on https://music-event-project-1.onrender.com.';
       } else if (error.code === 'ERR_NETWORK') {
         console.error('Network Error: Failed to connect to backend');
         error.networkError = true;
@@ -78,7 +78,7 @@ export const testConnection = async () => {
       return { 
         connected: false, 
         error: error.message,
-        details: 'Backend server is not accessible. Please ensure it is running on port 8080.'
+        details: 'Backend server is not accessible. Please ensure it is running on https://music-event-project-1.onrender.com .'
       };
     }
     // Other errors might mean server is running but endpoint has issues
