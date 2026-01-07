@@ -21,7 +21,11 @@ import java.nio.file.StandardOpenOption;
 // public class AuthController {
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin
+@CrossOrigin(origins = {
+        "http://localhost:3000",
+        "https://music-event-project.vercel.app"
+})
+
 public class AuthController {
     @Autowired
     private AuthService authService;

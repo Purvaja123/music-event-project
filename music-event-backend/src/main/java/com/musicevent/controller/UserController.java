@@ -10,7 +10,11 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {
+        "http://localhost:3000",
+        "https://music-event-project.vercel.app"
+})
+
 public class UserController {
     @Autowired
     private UserRepository userRepository;
