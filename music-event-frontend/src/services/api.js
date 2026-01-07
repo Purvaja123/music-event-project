@@ -12,23 +12,34 @@ const api = axios.create({
 // ✅ Request Interceptor
 // IMPORTANT: Do NOT send token for login/register
 // =======================
-api.interceptors.request.use(
-  (config) => {
-    const isAuthRequest =
-      config.url.includes('/auth/login') ||
-      config.url.includes('/auth/register');
+// api.interceptors.request.use(
+//   (config) => {
+//     const isAuthRequest =
+//       config.url.includes('/auth/login') ||
+//       config.url.includes('/auth/register');
 
-    if (!isAuthRequest) {
-      const token = localStorage.getItem('token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
-    }
+//     if (!isAuthRequest) {
+//       const token = localStorage.getItem('token');
+//       if (token) {
+//         config.headers.Authorization = `Bearer ${token}`;
+//       }
+//     }
 
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+//     return config;
+//   },
+//   (error) => Promise.reject(error)
+// );
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+
+  if (token && !config.url.includes('/auth')) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  return config;
+});
+
 
 // =======================
 // Response Interceptor
