@@ -23,9 +23,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-            throws ServletException, IOException {
-        
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain chain) throws ServletException, IOException {
+
+        // ✅ 1. SKIP JWT FILTER FOR AUTH ENDPOINTS
+        String path = request.getServletPath();
+        if (path.startsWith("/api/auth")) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         final String authorizationHeader = request.getHeader("Authorization");
 
         String email = null;
@@ -33,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         Long userId = null;
         String role = null;
 
-        // Extract token from Authorization header
+        // ✅ 2. Extract JWT if present
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7);
             try {
@@ -41,41 +50,35 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 userId = jwtUtil.extractUserId(jwt);
                 role = jwtUtil.extractRole(jwt);
             } catch (Exception e) {
-                logger.warn("JWT token extraction failed: " + e.getMessage());
+                SecurityContextHolder.clearContext();
+                chain.doFilter(request, response);
+                return;
             }
         }
 
-        // Validate token and set authentication
+        // ✅ 3. Validate JWT and set Authentication
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            try {
-                if (jwtUtil.validateToken(jwt, email)) {
-                    // Create authorities from role
-                    List<SimpleGrantedAuthority> authorities = Collections.singletonList(
-                        new SimpleGrantedAuthority("ROLE_" + role)
-                    );
 
-                    UsernamePasswordAuthenticationToken authenticationToken =
-                            new UsernamePasswordAuthenticationToken(
-                                    email,
-                                    null,
-                                    authorities
-                            );
-                    
-                    authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-                    
-                    // Store userId and role in request attributes for easy access in controllers
-                    request.setAttribute("userId", userId);
-                    request.setAttribute("userRole", role);
-                }
-            } catch (Exception e) {
-                logger.error("JWT validation failed: " + e.getMessage());
-                SecurityContextHolder.clearContext();
+            if (jwtUtil.validateToken(jwt, email)) {
+
+                List<SimpleGrantedAuthority> authorities = Collections.singletonList(
+                        new SimpleGrantedAuthority("ROLE_" + role));
+
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        email,
+                        null,
+                        authorities);
+
+                authToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                request.setAttribute("userId", userId);
+                request.setAttribute("userRole", role);
             }
         }
 
         chain.doFilter(request, response);
     }
 }
-
-
